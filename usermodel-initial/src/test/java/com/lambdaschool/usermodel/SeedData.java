@@ -12,19 +12,18 @@ import com.lambdaschool.usermodel.services.RoleService;
 import com.lambdaschool.usermodel.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
 
-/**
- * SeedData puts both known and random data into the database. It implements CommandLineRunner.
- * <p>
- * CoomandLineRunner: Spring Boot automatically runs the run method once and only once
- * after the application context has been loaded.
- */
 @Transactional
+@ConditionalOnProperty(prefix = "command.line.runner",
+                       value = "enabled",
+                       havingValue = "true",
+                       matchIfMissing = true)
 @Component
 public class SeedData
 		implements CommandLineRunner {
