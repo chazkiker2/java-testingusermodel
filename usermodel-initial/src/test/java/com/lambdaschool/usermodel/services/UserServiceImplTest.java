@@ -1,6 +1,7 @@
 package com.lambdaschool.usermodel.services;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lambdaschool.usermodel.UserModelApplication;
 import com.lambdaschool.usermodel.exceptions.ResourceNotFoundException;
 import com.lambdaschool.usermodel.models.Role;
@@ -438,38 +439,104 @@ public class UserServiceImplTest {
 		);
 	}
 
-//		@Test
-//		public void update() {
-//			Role r3 = new Role("data");
-//			r3.setRoleid(3);
-//
-//			String u3Name = "barnbarn";
-//
-//			User u3 = new User(
-//					u3Name,
-//					"ILuvM4th!",
-//					"barnbarn@lambdaschool.local"
-//			);
-//
-//			u3.setUserid(33);
-//
-//			u3.getRoles()
-//			  .add(new UserRoles(
-//					  u3,
-//					  r3
-//			  ));
-//			u3.getUseremails()
-//			  .add(new Useremail(
-//					  u3,
-//					  "barnbarn@email.local"
-//			  ));
-//		}
+	@Test
+	public void update()
+			throws
+			Exception {
+		Role r3 = new Role("data");
+		r3.setRoleid(3);
 
-	//	@Test(expected = ResourceNotFoundException.class)
-	//	public void updateUserNotFound() {}
-	//
-	//	@Test(expected = ResourceNotFoundException.class)
-	//	public void updateRoleNotFound() {}
+		String u3Name = "barnbarn";
 
+		User u3 = new User(
+				u3Name,
+				"ILuvM4th!",
+				"barnbarn@lambdaschool.local"
+		);
 
+		u3.setUserid(33);
+
+		u3.getRoles()
+		  .add(new UserRoles(
+				  u3,
+				  r3
+		  ));
+		u3.getUseremails()
+		  .add(new Useremail(
+				  u3,
+				  "barnbarn@email.local"
+		  ));
+
+		// I need a copy of u3 to send to update so the original is not changed.
+		// I am using Jackson to make a clone of the object
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		User copyU3 = objectMapper.readValue(
+				objectMapper.writeValueAsString(u3),
+				User.class
+		);
+
+		Mockito.when(userRepo.findById(33L))
+		       .thenReturn(Optional.of(copyU3));
+		Mockito.when(roleRepo.findById(3L))
+		       .thenReturn(Optional.of(r3));
+		Mockito.when(roleService.findRoleById(3))
+		       .thenReturn(r3);
+		Mockito.when(userRepo.save(any(User.class)))
+		       .thenReturn(u3);
+		User addUser = userService.update(
+				u3,
+				33
+		);
+		assertNotNull(addUser);
+		assertEquals(
+				u3Name,
+				addUser.getUsername()
+		);
+	}
+
+	@Test(expected = ResourceNotFoundException.class)
+	public void updateUserNotFound() {
+		Role r3 = new Role("data");
+		r3.setRoleid(3);
+
+		String u3Name = "barnbarn";
+
+		User u3 = new User(
+				u3Name,
+				"ILuvM4th!",
+				"barnbarn@lambdaschool.local"
+		);
+
+		u3.setUserid(777);
+
+		u3.getRoles()
+		  .add(new UserRoles(
+				  u3,
+				  r3
+		  ));
+		u3.getUseremails()
+		  .add(new Useremail(
+				  u3,
+				  "barnbarn@email.local"
+		  ));
+
+		Mockito.when(userRepo.findById(777L))
+		       .thenReturn(Optional.empty());
+		Mockito.when(roleRepo.findById(3L))
+		       .thenReturn(Optional.of(r3));
+		Mockito.when(roleService.findRoleById(3))
+		       .thenReturn(r3);
+		Mockito.when(userRepo.save(any(User.class)))
+		       .thenReturn(u3);
+		User addUser = userService.update(
+				u3,
+				777
+		);
+		assertNotNull(addUser);
+		assertEquals(
+				u3Name,
+				addUser.getUsername()
+		);
+	}
 }
